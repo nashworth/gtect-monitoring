@@ -1,0 +1,21 @@
+{
+    "Acc_25": "{{f1}}",
+    "Acc_50": "{{f2}}",
+    "Acc_100": "{{f3}}",
+    "Acc_200": "{{f4}}",
+    "Acc_400": "{{f5}}",
+    "Acc_800": "{{f6}}",
+    "Acc_1600": "{{f7}}",
+    "Acc_3200": "{{f8}}",
+    "RoomTemp": "{{RT}}",
+    "TC_Temp:": "{{TC}}",
+    "event": "{{event}}",
+    "published_at": "{{SPARK_PUBLISHED_AT}}",
+    "device_id": "{{PARTICLE_DEVICE_ID}}"
+  }
+
+Event Name: ATData
+IoT Hub Name: PumpMonitoring
+Shared Policy Name: 
+Shared Policy Key: 
+Device: Any
