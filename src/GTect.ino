@@ -180,7 +180,6 @@ void ReadAccelerometer(int i2c_address)   // function to read/average accelerome
 
 void PublishData()        // function to publish all sensor data in json format
 {
-  // A1Data = data from accelerometer 1
     Particle.publish("ATData", "{ \"f1\": \"" + String(Adata[0],2) + "\"," +
      "\"f2\": \"" + String(Adata[1],2) + "\"," +
      "\"f3\": \"" + String(Adata[2],2) + "\"," +
@@ -192,43 +191,6 @@ void PublishData()        // function to publish all sensor data in json format
      "\"RT\": \"" + String(RoomTemp,2) + "\"," +
      "\"TC\": \"" + String(Thermocouple,2) + "\"," +
      "\"event\": \"" + String(event) + "\" }", PRIVATE);
-/*     delay(1000);
-  // A2Data = data from accelerometer 2
-     Particle.publish("P1A2Data", "{ \"a2f1\": \"" + String(A2data[0],2) + "\"," +
-     "\"a2f2\": \"" + String(A2data[1],2) + "\"," +
-     "\"a2f3\": \"" + String(A2data[2],2) + "\"," +
-     "\"a2f4\": \"" + String(A2data[3],2) + "\"," +
-     "\"a2f5\": \"" + String(A2data[4],2) + "\"," +
-     "\"a2f6\": \"" + String(A2data[5],2) + "\"," +
-     "\"a2f7\": \"" + String(A2data[6],2) + "\"," +
-     "\"a2f8\": \"" + String(A2data[7],2) + "\"," +
-     "\"RT1\": \"" + String(RoomTemp1,2) + "\"," +
-     "\"TC1\": \"" + String(Thermocouple1,2) + "\" }", PRIVATE);
-     delay(1000);
-// A2Data = data from accelerometer 2
-     Particle.publish("P2A3Data", "{ \"a3f1\": \"" + String(A3data[0],2) + "\"," +
-     "\"a3f2\": \"" + String(A3data[1],2) + "\"," +
-     "\"a3f3\": \"" + String(A3data[2],2) + "\"," +
-     "\"a3f4\": \"" + String(A3data[3],2) + "\"," +
-     "\"a3f5\": \"" + String(A3data[4],2) + "\"," +
-     "\"a3f6\": \"" + String(A3data[5],2) + "\"," +
-     "\"a3f7\": \"" + String(A3data[6],2) + "\"," +
-     "\"a3f8\": \"" + String(A3data[7],2) + "\"," +
-     "\"RT2\": \"" + String(RoomTemp2,2) + "\"," +
-     "\"TC2\": \"" + String(Thermocouple2,2) + "\" }", PRIVATE);
-     delay(1000);
-// A2Data = data from accelerometer 2
-     Particle.publish("P2A4Data", "{ \"a4f1\": \"" + String(A4data[0],2) + "\"," +
-     "\"a4f2\": \"" + String(A4data[1],2) + "\"," +
-     "\"a4f3\": \"" + String(A4data[2],2) + "\"," +
-     "\"a4f4\": \"" + String(A4data[3],2) + "\"," +
-     "\"a4f5\": \"" + String(A4data[4],2) + "\"," +
-     "\"a4f6\": \"" + String(A4data[5],2) + "\"," +
-     "\"a4f7\": \"" + String(A4data[6],2) + "\"," +
-     "\"a4f8\": \"" + String(A4data[7],2) + "\"," +
-     "\"RT2\": \"" + String(RoomTemp2,2) + "\"," +
-     "\"TC2\": \"" + String(Thermocouple2,2) + "\" }", PRIVATE);
-*/
 }
 
 void ReadPressure(int i2c_address)      // function to read pressure/temp from pressure sensor
