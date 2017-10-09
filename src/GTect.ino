@@ -1,7 +1,6 @@
 #include "math.h"         // include math library for sqrt function
 #include "High_Temp.h"    // include library for thermocouple
 #include <Wire.h>         // include i2c library
-#define PS1I2C 0x28       // TE MSP100 pressure sensor I2C address
 #define GAccI2C 0x53      // Grove ADXL345 I2C address is 0x53(83)
 #define MuxI2C 0x73       // Digital Mux I2C Address
 #define GScaling 0.003901 // 3.9mG per bit A2D Scaling
@@ -15,15 +14,11 @@
 
 int x0data[32], x1data[32], y0data[32], y1data[32], z0data[32], z1data[32];
 int xdata[32], ydata[32], zdata[32];
-int pdata[4];
-int Acal1, Acal2, Acal3, Acal4;
 unsigned long DataInterval;
-double Adata[8], A1data[8], A2data[8], A3data[8], A4data[8];
+double Adata[8];
 float RoomTemp, Thermocouple;
-double Pressure, PTemp, Pressure1, PTemp1, Pressure2, PTemp2;
 String event;
 
-//int configAcc(String command);  // function declaration for calibration
 int configInterval(String interval);
 HighTemp ht1(A1, A0);
 HighTemp ht2(A5, A4);
@@ -31,7 +26,6 @@ HighTemp ht2(A5, A4);
 void setup()
 {
   Particle.variable("Firmware","GTect.ino");  // define particle variable
-//  Particle.function("AccSetup", configAcc);   // define particle function
   Particle.function("DataInterval", configInterval); // define particle function
   Wire.begin();                     // Initialise I2C communication as MASTER
   Serial.begin(9600);              // set baud rate
@@ -49,78 +43,34 @@ void setup()
   EEPROM.get(addr, nvmobj);       // read EEPROM data
   if (nvmobj.verifyEE == 0xaa55)  // if the verification value is true
   {
-    DataInterval = nvmobj.interval;
+    DataInterval = nvmobj.interval; // retrieve interval value from EEPROM
   }
-  else { DataInterval = OneMin;}
+  else { DataInterval = OneMin;}  // otherwise, set interval to 1 min
 }
 
 void loop()
 {
-  RoomTemp = ht1.getRoomTmp();   // read and calculate room temp 1
-  Thermocouple = ht1.getThmc();  // read and calculate thermocouple temp 1
+  RoomTemp = ht1.getRoomTmp();      // read and calculate room temp 1
+  Thermocouple = ht1.getThmc();     // read and calculate thermocouple temp 1
   SwitchMux(0x01);                  // switch to i2c mux input 1
   ReadAccelerometer(GAccI2C);       // read the accelerometer
   event = "Pump1Acc1";
   PublishData();                    // publish data to Particle cloud
-//  for(int j = 0; j < 8; j++){A1data[j] = Adata[j];}  // copy data
   SwitchMux(0x02);                  // switch to i2c mux input 2
   ReadAccelerometer(GAccI2C);       // read the accelerometer
   event = "Pump1Acc2";
   PublishData();                    // publish data to Particle cloud
-//  for(int j = 0; j < 8; j++){A2data[j] = Adata[j];} // copy data
-  RoomTemp = ht2.getRoomTmp();   // read and calculate room temp 2
-  Thermocouple = ht2.getThmc();  // read and calculate thermocouple temp 2
+  RoomTemp = ht2.getRoomTmp();      // read and calculate room temp 2
+  Thermocouple = ht2.getThmc();     // read and calculate thermocouple temp 2
   SwitchMux(0x04);                  // switch to i2c mux input 1
   ReadAccelerometer(GAccI2C);       // read the accelerometer
   event = "Pump2Acc3";
   PublishData();                    // publish data to Particle cloud
-//  for(int j = 0; j < 8; j++){A3data[j] = Adata[j];}  // copy data
   SwitchMux(0x08);                  // switch to i2c mux input 1
   ReadAccelerometer(GAccI2C);       // read the accelerometer
   event = "Pump2Acc4";
   PublishData();                    // publish data to Particle cloud
-//  for(int j = 0; j < 8; j++){A4data[j] = Adata[j];}  // copy data
-//  ReadPressure(PS1I2C);             // read pressure sensor
-//  Pressure1 = Pressure;             // copy pressure data
-//  PTemp1 = PTemp;                   // copy temperature data
-  delay(DataInterval);          // wait interval, then repeat main loop
-}
-
-int configAcc(String command)     // Particle function for accelerometer calibration
-{
-    if (command == "calibrate")   // if function call = "calibrate"
-    {
-      Acal1 = A1data[1];          // set calilbration values to amplitude 1
-      Acal2 = A2data[1];
-      Acal3 = A3data[1];
-      Acal4 = A4data[1];
-
-      int addr = 10;              // define EEPROM data structure
-      struct nvmobject
-      {
-        uint16_t verifyEE;
-        int Acal1;
-        int Acal2;
-        int Acal3;
-        int Acal4;
-      };
-
-      nvmobject nvmobj = { 0xaa55, Acal1, Acal2, Acal3, Acal4};
-      EEPROM.put(addr, nvmobj);     // write values to the EEPROM
-      return 1;
-    }
-    else if (command == "reset")    // if function call = "reset"
-    {
-      Acal1 = 0;                    // set calibration values to zero
-      Acal2 = 0;
-      Acal3 = 0;
-      Acal4 = 0;
-      int addr = 10;
-      uint16_t verifyEE = 0;
-      EEPROM.write(addr, verifyEE); // reset EEPROM verification value
-      return 0;
-    }
-    else return -1;
+  delay(DataInterval);              // wait interval, then repeat main loop
 }
 
 void ReadAccelerometer(int i2c_address)   // function to read/average accelerometer values
@@ -174,7 +124,7 @@ void ReadAccelerometer(int i2c_address)   // function to read/average accelerome
   // calculate amplitude by summing the squares, divide vectors by 100 to keep number manageable
       Adata[f] += (xdata[i]*xdata[i])/100 + (ydata[i]*ydata[i])/100 + (zdata[i]*zdata[i])/100;
     }
-    Adata[f] = sqrt(Adata[f]);  // Amplitude = squareroot of sum of the squares
+    Adata[f] = sqrt(Adata[f]);          // Amplitude = squareroot of sum of the squares
   }
 }
 
@@ -193,24 +143,6 @@ void PublishData()        // function to publish all sensor data in json format
      "\"event\": \"" + String(event) + "\" }", PRIVATE);
 }
 
-void ReadPressure(int i2c_address)      // function to read pressure/temp from pressure sensor
-{
-  Wire.beginTransmission(i2c_address);
-  Wire.requestFrom(i2c_address,4);       // request 4 bytes of data from sensor
-  while(Wire.available())
-  {
-    pdata[1] = Wire.read();
-    pdata[2] = Wire.read();
-    pdata[3] = Wire.read();
-    pdata[4] = Wire.read();
-  }
-  Pressure = ((pdata[1]) & 0x3F)<<8 | ((pdata[2]));   // combine 2 bytes of pressure data
-  Pressure = (Pressure - 1000)*(250/14000);           // calculate pressure in PSI
-  PTemp = ((pdata[3])<<3 | ((pdata[4]) & 0xE0)>>5);   // combine 2 bytes of temp data
-  PTemp = (PTemp * 200)/2048 - 50;                    // calculate temp in C
-  Wire.endTransmission();
-}
-
 void SwitchMux(int select)          // function to change the i2c mux channel
 {
   Wire.beginTransmission(MuxI2C);
@@ -218,37 +150,36 @@ void SwitchMux(int select)          // function to change the i2c mux channel
   Wire.endTransmission();
 }
 
-
 int configInterval(String interval) // Particle function for data publishing interval
 {
-    if (interval == "10S")        // if function call = 10 seconds
+    if (interval == "10S")          // if function call = 10 seconds
     {
       DataInterval = TenSec;
       return 10;
     }
-    else if (interval == "1M")    // if function call = 1 minute
+    else if (interval == "1M")      // if function call = 1 minute
     {
       DataInterval = OneMin;
       return 60;
     }
-    else if (interval == "5M")    // if function call = 5 minutes
+    else if (interval == "5M")      // if function call = 5 minutes
     {
       DataInterval = FiveMin;
       return 300;
     }
-    else if (interval == "10M")   // if function call = 10 minutes
+    else if (interval == "10M")     // if function call = 10 minutes
     {
       DataInterval = TenMin;
       return 600;
     }
-    else if (interval == "15M")   // if function call = 10 minutes
+    else if (interval == "15M")     // if function call = 10 minutes
     {
       DataInterval = FifteenMin;
       return 900;
     }
     else return -1;
 
-    int addr = 10;              // define EEPROM data structure
+    int addr = 10;                  // define EEPROM data structure
     struct nvmobject
     {
       uint16_t verifyEE;
